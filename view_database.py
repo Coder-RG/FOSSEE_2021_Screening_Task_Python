@@ -45,6 +45,7 @@ def get_columns(dbname, table_name):
     for row in c.execute('PRAGMA table_info="{}"'.format(table_name)):
         column_names.append(row[1])
     return column_names
+    c.close()
 
 if __name__ == '__main__':
     option = sys.argv[1]
