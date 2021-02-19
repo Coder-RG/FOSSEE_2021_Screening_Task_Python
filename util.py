@@ -1,7 +1,6 @@
 import sqlite3
 import view_database as vdb
 import openpyxl
-loc = ("new_sections.xlsx")
 
 dbname = "steel_sections.sqlite"
 
@@ -30,7 +29,7 @@ def connect(func):
             conn.execute(query)
         except Exception as e:
             conn = start_connection()
-        return func(conn, dbname, *args, **kwargs)
+        return func(conn, *args, **kwargs)
     return inner
 
 def end_connection(conn):
@@ -52,9 +51,6 @@ def insert_one(conn, table_name, values):
         query = 'INSERT INTO Channels VALUES\
         (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
     conn.execute(query, values)
-    # for row in conn.execute('SELECT * FROM {}'.format(table_name)):
-    #     print(row)
-    # conn.close()
 
 @connect
 def insert_many(conn, table_name, file_name):
