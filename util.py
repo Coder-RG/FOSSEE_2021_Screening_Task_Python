@@ -92,6 +92,25 @@ def update_one(conn, table_name, designation, column_list):
     WHERE designation=?".format(table_name, column_list, values)
     return conn.execute(query, designation)
 
+@connect
+def get_columns(conn, table_name):
+    column_names = list()
+    for row in conn.execute('PRAGMA table_info="{}"'.format(table_name)):
+        column_names.append(row[1])
+    return column_names
+    c.close()
+
+@connect
+def get_designations(conn, *args, **kwargs):
+    query = "SELECT name FROM sqlite_master WHERE type='table';"
+    result = list()
+    for row in conn.execute(query):
+        query2 = "SELECT Designation from {}".format(row[0])
+        for i in conn.execute(query2):
+            result.append(i[0])
+    # print(result)
+    return result
+
 if __name__ == '__main__':
     conn = start_connection()
     for row in conn.execute('SELECT * FROM Beams;'):
