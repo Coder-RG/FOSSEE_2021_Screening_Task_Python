@@ -83,7 +83,6 @@ def view_one(conn, table_name, designation):
         raise NotValidTable("Enter a valid table name")
     query = "SELECT * FROM {} WHERE designation=?".format(table_name)
     return conn.execute(query, (designation,))
-
 @connect
 def update_one(conn, table_name, designation, column_list):
     if table_name is None:
@@ -101,14 +100,11 @@ def get_columns(conn, table_name):
     c.close()
 
 @connect
-def get_designations(conn, *args, **kwargs):
-    query = "SELECT name FROM sqlite_master WHERE type='table';"
+def get_designations(conn, table, *args, **kwargs):
     result = list()
-    for row in conn.execute(query):
-        query2 = "SELECT Designation from {}".format(row[0])
-        for i in conn.execute(query2):
-            result.append(i[0])
-    # print(result)
+    query = "SELECT Designation from {}".format(table)
+    for i in conn.execute(query):
+        result.append(i[0])
     return result
 
 if __name__ == '__main__':
