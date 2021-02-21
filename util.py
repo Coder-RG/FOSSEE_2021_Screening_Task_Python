@@ -52,9 +52,7 @@ def insert_one(conn, table_name, values):
         (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
 
     query2 = "SELECT designation FROM {} WHERE designation=?".format(table_name)
-    # print(values[0])
     present = conn.execute(query2, (values[0],)).fetchone()
-    # print(present)
     if present:
         raise ItemAlreadyStored()
     id = get_Id(conn, table_name)
@@ -62,8 +60,8 @@ def insert_one(conn, table_name, values):
     conn.execute(query, values)
 
 @connect
-def insert_many(conn, table_name, file_name):
-    """Inserts data from Excel file(.xlsx) in the table"""
+def insert_upon_delete(conn, table_name, values):
+    """Updates the value by first deleting the previous value and then inserting new."""
     if table_name == 'Beams':
         #20
         query = 'INSERT INTO Beams VALUES\
@@ -76,7 +74,7 @@ def insert_many(conn, table_name, file_name):
         #21
         query = 'INSERT INTO Channels VALUES\
         (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
-    return
+    conn.execute(query, values)
 
 @connect
 def view_all(conn, table_name):
@@ -92,13 +90,20 @@ def view_one(conn, table_name, designation):
         raise NotValidTable("Enter a valid table name")
     query = "SELECT * FROM {} WHERE designation=?".format(table_name)
     return conn.execute(query, (designation,))
+
 @connect
-def update_one(conn, table_name, designation, column_list):
-    if table_name is None:
-        raise NotValidTable("Enter a valid table name")
-    query = "UPDATE {} SET ({})=({})\
-    WHERE designation=?".format(table_name, column_list, values)
-    conn.execute(query, designation)
+def update_one(conn, table_name, values):
+    query = "SELECT Id FROM {} WHERE designation=?".format(table_name)
+    result = conn.execute(query, (values[0],)).fetchone()
+    query2 = "DELETE FROM {} WHERE Id=?".format(table_name)
+    conn.execute(query2, result)
+    values.insert(0, result[0])
+    insert_upon_delete(conn, table_name, values)
+
+@connect
+def delete_one(conn, table_name, designation):
+    query = "DELETE FROM {} WHERE designation=?".format(table_name)
+    conn.execute(query, (designation,))
 
 @connect
 def get_columns(conn, table_name):
@@ -106,7 +111,6 @@ def get_columns(conn, table_name):
     for row in conn.execute('PRAGMA table_info="{}"'.format(table_name)):
         column_names.append(row[1])
     return column_names
-    c.close()
 
 @connect
 def get_designations(conn, table, *args, **kwargs):

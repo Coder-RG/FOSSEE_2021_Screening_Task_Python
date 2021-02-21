@@ -24,6 +24,12 @@ class Model(object):
     def view_table(self, table):
         return util.view_all(self.conn, table)
 
+    def update_row(self, table, values):
+        util.update_one(self.conn, table, values)
+
+    def delete_row(self, table, designation):
+        util.delete_one(self.conn, table, designation)
+
     def get_designations(self, table):
         return util.get_designations(self.conn, table)
 
@@ -48,7 +54,7 @@ class View(QMainWindow):
         self.stackedWidget.setCurrentIndex(0)
         self.add_item.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))
         self.view_item.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(1))
-        self.view_tables.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(2))
+        self.view_tables.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(3))
 
     def handle_combobox(self):
         self.add_item_combobox.addItems(self.category)
@@ -58,6 +64,8 @@ class View(QMainWindow):
         self.view_tables_combobox.activated.connect(self.func_view_table)
         self.view_item_combobox1.activated[str].connect(self.abc)
         self.submit.clicked.connect(self.func_add_item_data)
+        self.update.clicked.connect(self.handle_update)
+        self.delete1.clicked.connect(self.handle_delete)
 
     #Handles the entering of data into the database
     def func_add_item_data(self):
@@ -113,6 +121,7 @@ class View(QMainWindow):
             header = self.model.get_columns(option)
             self.designation = designation
             result = self.model.view_row(option, designation)
+            self.view_item_result = result
             self.view_item_table.setColumnCount(len(result)-1)
             self.view_item_table.setHorizontalHeaderLabels(header[1:])
             self.view_item_table.setRowCount(1)
@@ -138,18 +147,38 @@ class View(QMainWindow):
         self.view_table_table.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
 
     def handle_error(self):
-        msg = QMessageBox()
-        msg.setText("Value already present.")
+        msg = QMessageBox(self)
+        msg.setText("Value already present.\nTo update the value please use the `View/Update/Delete` tab")
         msg.setWindowTitle("Error Encountered")
         msg.setIcon(QMessageBox.Information)
-        msg.setStandardButtons(QMessageBox.No | QMessageBox.Yes)
-        msg.setDefaultButton(QMessageBox.No)
+        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        msg.setDefaultButton(QMessageBox.Ok)
         msg.buttonClicked.connect(self.popup_response)
         msg.exec_()
 
-    def popup_response(self, i):
-        if i.text() == "&Yes":
-            print("YES")
+    def handle_delete(self):
+        option = self.view_item_combobox1.currentText()
+        if option == "I/Beam":
+            option = "Beam"
+        designation = self.view_item_table.item(0,0).text()
+        self.model.delete_row(option, designation)
+
+    def handle_update(self):
+        option = self.view_item_combobox1.currentText()
+        if option == "I/Beam":
+            option = "Beams"
+        values = list()
+        for col in range(self.view_item_table.columnCount()):
+            col_val = self.view_item_table.item(0,col).text()
+            if col_val == "None":
+                values.append(None)
+            else:
+                try:
+                    col_val = float(col_val)
+                except ValueError:
+                    pass
+                values.append(col_val)
+        self.model.update_row(option, values)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
