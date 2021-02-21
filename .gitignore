@@ -3,3 +3,4 @@ beam.png
 example.db
 trial.py
 __pycache__/
+*.sqlite-journal

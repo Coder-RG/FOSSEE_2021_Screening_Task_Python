@@ -50,6 +50,15 @@ def insert_one(conn, table_name, values):
         #21
         query = 'INSERT INTO Channels VALUES\
         (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
+
+    query2 = "SELECT designation FROM {} WHERE designation=?".format(table_name)
+    # print(values[0])
+    present = conn.execute(query2, (values[0],)).fetchone()
+    # print(present)
+    if present:
+        raise ItemAlreadyStored()
+    id = get_Id(conn, table_name)
+    values.insert(0, int(id)+1)
     conn.execute(query, values)
 
 @connect
@@ -89,7 +98,7 @@ def update_one(conn, table_name, designation, column_list):
         raise NotValidTable("Enter a valid table name")
     query = "UPDATE {} SET ({})=({})\
     WHERE designation=?".format(table_name, column_list, values)
-    return conn.execute(query, designation)
+    conn.execute(query, designation)
 
 @connect
 def get_columns(conn, table_name):

@@ -2,7 +2,7 @@ import util
 import sys
 from PyQt5.uic import loadUi
 from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtWidgets import QDialog, QApplication, QMainWindow
+from PyQt5.QtWidgets import QDialog, QApplication, QMainWindow, QMessageBox
 # import view_database as vdb
 
 #MVC: Model, View, Controller
@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QDialog, QApplication, QMainWindow
 #Model
 class Model(object):
     """All the relevant methods for interacting with the database reside here.
-    This is, therefore, the Model part in the MVC architecture"""
+    Which is, therefore, the Model part in the MVC architecture"""
     def __init__(self, dbname=None):
         self.dbname = dbname
         self.conn = util.start_connection()
@@ -29,9 +29,6 @@ class Model(object):
 
     def get_columns(self, table):
         return util.get_columns(self.conn, table)
-
-    def get_id(self, table):
-        return util.get_Id(self.conn, table)
 
 #View/Controller
 class View(QMainWindow):
@@ -62,15 +59,27 @@ class View(QMainWindow):
         self.view_item_combobox1.activated[str].connect(self.abc)
         self.submit.clicked.connect(self.func_add_item_data)
 
+    #Handles the entering of data into the database
     def func_add_item_data(self):
+        option = self.add_item_combobox.currentText()
+        if option == "I/Beam":
+            option = "Beams"
         row_val = list()
         for col in range(self.header_length-1):
             col_val = self.add_item_table.item(0, col)
-            if col_val is None:
+            if col_val is None or col_val.text() == '':
                 row_val.append(None)
             else:
-                row_val.append(col_val.text())
-        print(row_val)
+                col_val = col_val.text()
+                try:
+                    col_val = float(col_val)
+                except ValueError:
+                    pass
+                row_val.append(col_val)
+        try:
+            self.model.insert_data(option, row_val)
+        except util.ItemAlreadyStored:
+            self.handle_error()
 
     #Populate the table widget for the add_item stack
     def func_add_item(self):
@@ -127,6 +136,20 @@ class View(QMainWindow):
             index += 1
             self.view_table_table.insertRow(self.view_table_table.rowCount())
         self.view_table_table.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
+
+    def handle_error(self):
+        msg = QMessageBox()
+        msg.setText("Value already present.")
+        msg.setWindowTitle("Error Encountered")
+        msg.setIcon(QMessageBox.Information)
+        msg.setStandardButtons(QMessageBox.No | QMessageBox.Yes)
+        msg.setDefaultButton(QMessageBox.No)
+        msg.buttonClicked.connect(self.popup_response)
+        msg.exec_()
+
+    def popup_response(self, i):
+        if i.text() == "&Yes":
+            print("YES")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
