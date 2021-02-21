@@ -30,6 +30,9 @@ class Model(object):
     def get_columns(self, table):
         return util.get_columns(self.conn, table)
 
+    def get_id(self, table):
+        return util.get_Id(self.conn, table)
+
 #View/Controller
 class View(QMainWindow):
     """All the necessary code for the GUI of the application. Coinicidentally,
@@ -60,12 +63,14 @@ class View(QMainWindow):
         self.submit.clicked.connect(self.func_add_item_data)
 
     def func_add_item_data(self):
-        for col in range(self.header_length):
+        row_val = list()
+        for col in range(self.header_length-1):
             col_val = self.add_item_table.item(0, col)
             if col_val is None:
-                print("Found the culprit")
+                row_val.append(None)
             else:
-                print(col_val.text(), end=" ")
+                row_val.append(col_val.text())
+        print(row_val)
 
     #Populate the table widget for the add_item stack
     def func_add_item(self):

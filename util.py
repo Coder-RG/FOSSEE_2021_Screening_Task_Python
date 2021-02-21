@@ -107,6 +107,11 @@ def get_designations(conn, table, *args, **kwargs):
         result.append(i[0])
     return result
 
+def get_Id(conn, table, *args, **kwargs):
+    query = "SELECT MAX(Id) from {}".format(table)
+    result = conn.execute(query).fetchone()
+    return result[0]
+
 if __name__ == '__main__':
     conn = start_connection()
     for row in conn.execute('SELECT * FROM Beams;'):
