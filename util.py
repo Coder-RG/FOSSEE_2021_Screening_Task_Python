@@ -77,6 +77,23 @@ def insert_upon_delete(conn, table_name, values):
     conn.execute(query, values)
 
 @connect
+def insert_many(conn, table_name, values):
+    if table_name == 'Beams':
+        #20
+        query = 'INSERT INTO Beams VALUES\
+        (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
+    elif table_name == 'Angles':
+        #24
+        query = 'INSERT INTO Angles VALUES\
+        (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
+    else:
+        #21
+        query = 'INSERT INTO Channels VALUES\
+        (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
+    for value in values:
+        conn.execute(query, value)
+
+@connect
 def view_all(conn, table_name):
     """View Table data of `table_name`"""
     if table_name is None:
@@ -125,13 +142,28 @@ def get_Id(conn, table, *args, **kwargs):
     result = conn.execute(query).fetchone()
     return result[0]
 
+@connect
+def insert_using_excel(conn, table, loc):
+    wb = openpyxl.load_workbook(loc)
+    sheet = wb.active
+    col_count = sheet.max_column
+    row_count = sheet.max_row
+
+    max_id = get_Id(conn, table)
+    values = list()
+    for x in range(2, row_count+1):
+        temp = list()
+        for y in range(2, col_count+1):
+            cell_obj = sheet.cell(row=x, column=y)
+            item_val = cell_obj.value
+            try:
+                item_val = float(item_val)
+            except ValueError:
+                pass
+            temp.append(item_val)
+        temp.insert(0, max_id+x-1)
+        values.append(temp)
+    insert_many(conn, table, values)
+
 if __name__ == '__main__':
-    conn = start_connection()
-    for row in conn.execute('SELECT * FROM Beams;'):
-        print(row)
-    # end_connection(conn)
-    # wb = openpyxl.load_workbook(loc)
-    # sheet = wb.active
-    # max_col = sheet.max_column
-    # values = [sheet.cell(row=2, column=i).value for i in range(1, max_col+1)]
-    # insert_into_table(None, 'steel_sections.sqlite', 'Beams', values)
+    insert_using_excel(None, "Beams", "new_sections.xlsx")

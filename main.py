@@ -3,7 +3,7 @@ import sys
 from PyQt5.uic import loadUi
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import QDialog, QApplication, QMainWindow, QMessageBox
-from PyQt5.QtWidgets import QMenu, QAction
+from PyQt5.QtWidgets import QMenu, QAction, QFileDialog
 
 #MVC: Model, View, Controller
 
@@ -17,6 +17,9 @@ class Model(object):
 
     def insert_data(self, table, values):
         util.insert_one(self.conn, table, values)
+
+    def insert_many(self, table, loc):
+        util.insert_using_excel(self.conn, table, loc)
 
     def view_row(self, table, designation):
         return util.view_one(self.conn, table, designation).fetchone()
@@ -161,7 +164,14 @@ class View(QMainWindow):
         self.view_table_table.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
 
     def handle_excel(self):
-        pass
+        option = self.add_item_combobox.currentText()
+        if option == "I/Beam":
+            option = "Beams"
+        try:
+            file_name, _filter = QFileDialog.getOpenFileName(self, 'Open File', '.', "Excel Files (*.xlsx *.xlsm *.xltx *.xltm)")
+            self.model.insert_many(option, file_name)
+        except Exception as e:
+            self.handle_misc(e)
 
     def handle_delete(self):
         option = self.view_item_combobox1.currentText()
@@ -213,9 +223,9 @@ class View(QMainWindow):
 
     def handle_misc(self, e):
         msg = QMessageBox(self)
-        msg.setText("Some error occured.\nSend this error to the support team.")
+        msg.setText("Some error occured.\nRead the help section.")
         exception = e.__class__.__name__
-        msg.setDetailedText(exception+"\n"+str(e)+".\nDo not change the dropdown before clicking some buttons.")
+        msg.setDetailedText(exception+"\n"+str(e))
         msg.setWindowTitle("Error Encountered")
         msg.setIcon(QMessageBox.Information)
         msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
