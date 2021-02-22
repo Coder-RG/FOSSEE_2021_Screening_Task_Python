@@ -92,9 +92,9 @@ def view_one(conn, table_name, designation):
     return conn.execute(query, (designation,))
 
 @connect
-def update_one(conn, table_name, values):
+def update_one(conn, table_name, values, designation):
     query = "SELECT Id FROM {} WHERE designation=?".format(table_name)
-    result = conn.execute(query, (values[0],)).fetchone()
+    result = conn.execute(query, (designation,)).fetchone()
     query2 = "DELETE FROM {} WHERE Id=?".format(table_name)
     conn.execute(query2, result)
     values.insert(0, result[0])
