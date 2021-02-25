@@ -101,6 +101,7 @@ class View(QMainWindow):
         if any(row_val) and row_val[0] is not None and row_val[0] != '':
             try:
                 self.model.insert_data(option, row_val)
+                self.confirm_change()
             except util.ItemAlreadyStored:
                 self.handle_error()
         else:
@@ -170,6 +171,7 @@ class View(QMainWindow):
         try:
             file_name, _filter = QFileDialog.getOpenFileName(self, 'Open File', '.', "Excel Files (*.xlsx *.xlsm *.xltx *.xltm)")
             self.model.insert_many(option, file_name)
+            self.confirm_change()
         except Exception as e:
             self.handle_misc(e)
 
@@ -180,6 +182,7 @@ class View(QMainWindow):
         designation = self.view_item_table.item(0,0).text()
         try:
             self.model.delete_row(option, designation)
+            self.confirm_change()
         except Exception as e:
             self.handle_misc(e)
 
@@ -200,6 +203,7 @@ class View(QMainWindow):
                 values.append(col_val)
         try:
             self.model.update_row(option, values, self.designation)
+            self.confirm_change()
         except Exception as e:
             self.handle_misc(e)
 
@@ -207,17 +211,17 @@ class View(QMainWindow):
         msg = QMessageBox(self)
         msg.setText("No Value supplied/designation is empty.\nEnter some values in the fields and then click submit")
         msg.setWindowTitle("Error Encountered")
-        msg.setIcon(QMessageBox.Information)
-        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        msg.setIcon(QMessageBox.Warning)
+        msg.setStandardButtons(QMessageBox.Ok)
         msg.setDefaultButton(QMessageBox.Ok)
         msg.exec_()
 
     def handle_error(self):
         msg = QMessageBox(self)
-        msg.setText("Value already present.\nTo update the value please use the `View/Update/Delete` tab")
+        msg.setText("This section is already present.\nTo update the value please use the `View/Update/Delete` tab")
         msg.setWindowTitle("Error Encountered")
-        msg.setIcon(QMessageBox.Information)
-        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        msg.setIcon(QMessageBox.Warning)
+        msg.setStandardButtons(QMessageBox.Ok)
         msg.setDefaultButton(QMessageBox.Ok)
         msg.exec_()
 
@@ -227,8 +231,18 @@ class View(QMainWindow):
         exception = e.__class__.__name__
         msg.setDetailedText(exception+"\n"+str(e))
         msg.setWindowTitle("Error Encountered")
+        msg.setIcon(QMessageBox.Critical)
+        msg.setStandardButtons(QMessageBox)
+        msg.setDefaultButton(QMessageBox.Ok)
+        msg.exec_()
+
+    def confirm_change(self):
+        msg = QMessageBox(self)
+        msg.setText("Changes made to the database.\nGo to 'View Table Data' tab to see the changes.")
+        msg.setInformativeText("Choose the category in 'View Table Data' again, if visited previously.")
+        msg.setWindowTitle("Operation Successful")
         msg.setIcon(QMessageBox.Information)
-        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        msg.setStandardButtons(QMessageBox.Ok)
         msg.setDefaultButton(QMessageBox.Ok)
         msg.exec_()
 

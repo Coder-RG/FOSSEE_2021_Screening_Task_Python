@@ -4,9 +4,6 @@ import openpyxl
 
 dbname = "steel_sections.sqlite"
 
-class NotValidDB(Exception):
-    pass
-
 class ItemNotStored(Exception):
     pass
 
@@ -32,9 +29,6 @@ def connect(func):
         return func(conn, *args, **kwargs)
     return inner
 
-def end_connection(conn):
-    return
-
 @connect
 def insert_one(conn, table_name, values):
     """Inserts data into table mentioned in the `table_name`"""
@@ -58,6 +52,7 @@ def insert_one(conn, table_name, values):
     id = get_Id(conn, table_name)
     values.insert(0, int(id)+1)
     conn.execute(query, values)
+    conn.commit()
 
 @connect
 def insert_upon_delete(conn, table_name, values):
@@ -75,6 +70,7 @@ def insert_upon_delete(conn, table_name, values):
         query = 'INSERT INTO Channels VALUES\
         (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
     conn.execute(query, values)
+    conn.commit()
 
 @connect
 def insert_many(conn, table_name, values):
@@ -92,6 +88,7 @@ def insert_many(conn, table_name, values):
         (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
     for value in values:
         conn.execute(query, value)
+    conn.commit()
 
 @connect
 def view_all(conn, table_name):
@@ -121,6 +118,7 @@ def update_one(conn, table_name, values, designation):
 def delete_one(conn, table_name, designation):
     query = "DELETE FROM {} WHERE designation=?".format(table_name)
     conn.execute(query, (designation,))
+    conn.commit()
 
 @connect
 def get_columns(conn, table_name):
@@ -164,6 +162,3 @@ def insert_using_excel(conn, table, loc):
         temp.insert(0, max_id+x-1)
         values.append(temp)
     insert_many(conn, table, values)
-
-if __name__ == '__main__':
-    insert_using_excel(None, "Beams", "new_sections.xlsx")
