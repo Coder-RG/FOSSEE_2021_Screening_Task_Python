@@ -47,7 +47,7 @@ class View(QMainWindow):
         super(View, self).__init__()
         self.model = Model
         loadUi("/home/rishabh/project/untitled.ui", self)
-        self.setWindowIcon(QtGui.QIcon('beam2.png'))
+        self.setWindowIcon(QtGui.QIcon('images/beam2.png'))
         self.category = ("I/Beam", "Angles", "Channels")
         self.designation = None
         self.handle_stackedWidget()
